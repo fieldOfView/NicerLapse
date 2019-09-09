@@ -147,16 +147,7 @@ class RosyWriterCapturePipeline: NSObject, AVCaptureAudioDataOutputSampleBufferD
 //        _videoDataOutputQueue = DispatchQueue(label: "com.apple.sample.capturepipeline.video", attributes: [])
 //        _videoDataOutputQueue.setTarget(queue: DispatchQueue.global(qos: .userInteractive))
         
-        // USE_XXX_RENDERER is set in the project's build settings for each target
-        #if USE_OPENGL_RENDERER
-            _renderer = RosyWriterOpenGLRenderer()
-        #elseif USE_CPU_RENDERER
-            _renderer = RosyWriterCPURenderer()
-        #elseif USE_CIFILTER_RENDERER
-            _renderer = RosyWriterCIFilterRenderer()
-        #elseif USE_OPENCV_RENDERER
-            _renderer = RosyWriterOpenCVRenderer()
-        #endif
+        _renderer = RosyWriterOpenGLRenderer()
         
         _pipelineRunningTask = UIBackgroundTaskInvalid
         _delegate = delegate
@@ -277,13 +268,6 @@ class RosyWriterCapturePipeline: NSObject, AVCaptureAudioDataOutputSampleBufferD
             }
             frameRate = 15
         } else {
-            #if !USE_OPENGL_RENDERER
-                // When using the CPU renderers or the CoreImage renderer we lower the resolution to 720p so that all devices can maintain real-time performance (this is primarily for A5 based devices like iPhone 4s and iPod Touch 5th Generation).
-                if _captureSession!.canSetSessionPreset(AVCaptureSession.Preset.hd1280x720) {
-                    sessionPreset = AVCaptureSession.Preset.hd1280x720
-                }
-            #endif // !USE_OPENGL_RENDERER
-            
             frameRate = 30
         }
         
