@@ -23,7 +23,7 @@ class RosyWriterViewController: UIViewController, RosyWriterCapturePipelineDeleg
     
     private var _addedObservers: Bool = false
     private var _recording: Bool = false
-    private var _backgroundRecordingID: UIBackgroundTaskIdentifier = UIBackgroundTaskIdentifier(rawValue: 0)
+    private var _backgroundRecordingID: UIBackgroundTaskIdentifier = UIBackgroundTaskIdentifier(0)
     private var _allowedToUseGPU: Bool = false
     
     private var _labelTimer: Timer?
@@ -36,9 +36,9 @@ class RosyWriterViewController: UIViewController, RosyWriterCapturePipelineDeleg
     
     deinit {
         if _addedObservers {
-            NotificationCenter.default.removeObserver(self, name: UIApplication.didEnterBackgroundNotification, object: UIApplication.shared)
-            NotificationCenter.default.removeObserver(self, name: UIApplication.willEnterForegroundNotification, object: UIApplication.shared)
-            NotificationCenter.default.removeObserver(self, name: UIDevice.orientationDidChangeNotification, object: UIDevice.current)
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIApplicationDidEnterBackground, object: UIApplication.shared)
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIApplicationWillEnterForeground, object: UIApplication.shared)
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIDeviceOrientationDidChange, object: UIDevice.current)
             UIDevice.current.endGeneratingDeviceOrientationNotifications()
         }
         
@@ -67,15 +67,15 @@ class RosyWriterViewController: UIViewController, RosyWriterCapturePipelineDeleg
         
         NotificationCenter.default.addObserver(self,
             selector: #selector(self.applicationDidEnterBackground),
-            name: UIApplication.didEnterBackgroundNotification,
+            name: NSNotification.Name.UIApplicationDidEnterBackground,
             object: UIApplication.shared)
         NotificationCenter.default.addObserver(self,
             selector: #selector(self.applicationWillEnterForeground),
-            name: UIApplication.willEnterForegroundNotification,
+            name: NSNotification.Name.UIApplicationWillEnterForeground,
             object: UIApplication.shared)
         NotificationCenter.default.addObserver(self,
             selector: #selector(self.deviceOrientationDidChange),
-            name: UIDevice.orientationDidChangeNotification,
+            name: NSNotification.Name.UIDeviceOrientationDidChange,
             object: UIDevice.current)
         
         // Keep track of changes to the device orientation so we can update the capture pipeline
@@ -146,13 +146,13 @@ class RosyWriterViewController: UIViewController, RosyWriterCapturePipelineDeleg
         UIApplication.shared.isIdleTimerDisabled = false
         
         UIApplication.shared.endBackgroundTask(_backgroundRecordingID)
-        _backgroundRecordingID = .invalid
+        _backgroundRecordingID = UIBackgroundTaskInvalid
     }
     
     private func setupPreviewView() {
         // Set up GL view
         _previewView = OpenGLPixelBufferView(frame: CGRect.zero)
-        _previewView!.autoresizingMask = [UIView.AutoresizingMask.flexibleHeight, UIView.AutoresizingMask.flexibleWidth]
+        //_previewView!.autoresizingMask = [UIView.AutoresizingMask.flexibleHeight, UIView.AutoresizingMask.flexibleWidth]
         
         let currentInterfaceOrientation = UIApplication.shared.statusBarOrientation
         _previewView!.transform = _capturePipeline.transformFromVideoBufferOrientationToOrientation(AVCaptureVideoOrientation(rawValue: currentInterfaceOrientation.rawValue)!, withAutoMirroring: true) // Front camera preview should be mirrored

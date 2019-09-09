@@ -293,7 +293,7 @@ class RosyWriterOpenGLRenderer: NSObject, RosyWriterRenderer {
                 success = false
                 break bail
             }
-            CMVideoFormatDescriptionCreateForImageBuffer(allocator: kCFAllocatorDefault, imageBuffer: testPixelBuffer!, formatDescriptionOut: &outputFormatDescription)
+            CMVideoFormatDescriptionCreateForImageBuffer(kCFAllocatorDefault, testPixelBuffer!, &outputFormatDescription)
             _outputFormatDescription = outputFormatDescription
             
         } //bail:

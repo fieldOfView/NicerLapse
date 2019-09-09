@@ -433,17 +433,21 @@
 				TargetAttributes = {
 					1756C9D419BE5E1F0080DD55 = {
 						CreatedOnToolsVersion = 8.0;
+						DevelopmentTeam = 8Y6V4ZL9MZ;
 						LastSwiftMigration = 0930;
 					};
 					1FCCE64619BA80A5009D7A6B = {
 						CreatedOnToolsVersion = 8.0;
+						DevelopmentTeam = 8Y6V4ZL9MZ;
 					};
 					696D280919CA539900A23D81 = {
 						CreatedOnToolsVersion = 8.0;
+						DevelopmentTeam = 8Y6V4ZL9MZ;
 						LastSwiftMigration = 1020;
 					};
 					6F90DDD41395CAAA00125BDA = {
 						CreatedOnToolsVersion = 8.0;
+						DevelopmentTeam = 8Y6V4ZL9MZ;
 						LastSwiftMigration = 0820;
 					};
 				};
@@ -632,7 +636,7 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 8Y6V4ZL9MZ;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "RosyWriter-Prefix.pch";
 				INFOPLIST_FILE = "RosyWriter-Info.plist";
@@ -644,7 +648,7 @@
 				PRODUCT_NAME = RosyWriterCIFilter;
 				PROVISIONING_PROFILE = "";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				WRAPPER_EXTENSION = app;
 			};
@@ -657,7 +661,7 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 8Y6V4ZL9MZ;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "RosyWriter-Prefix.pch";
 				INFOPLIST_FILE = "RosyWriter-Info.plist";
@@ -669,7 +673,7 @@
 				PRODUCT_NAME = RosyWriterCIFilter;
 				PROVISIONING_PROFILE = "";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				WRAPPER_EXTENSION = app;
 			};
@@ -682,7 +686,7 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 8Y6V4ZL9MZ;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "RosyWriter-Prefix.pch";
 				INFOPLIST_FILE = "RosyWriter-Info.plist";
@@ -695,7 +699,7 @@
 				PROVISIONING_PROFILE = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				WRAPPER_EXTENSION = app;
 			};
@@ -708,7 +712,7 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 8Y6V4ZL9MZ;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "RosyWriter-Prefix.pch";
 				INFOPLIST_FILE = "RosyWriter-Info.plist";
@@ -720,7 +724,7 @@
 				PRODUCT_NAME = RosyWriterCPU;
 				PROVISIONING_PROFILE = "";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				WRAPPER_EXTENSION = app;
 			};
@@ -733,7 +737,7 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 8Y6V4ZL9MZ;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "RosyWriter-Prefix.pch";
 				INFOPLIST_FILE = "RosyWriter-Info.plist";
@@ -744,7 +748,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.example.apple-samplecode.RosyWriterOpenCV";
 				PRODUCT_NAME = RosyWriterOpenCV;
 				PROVISIONING_PROFILE = "";
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				WRAPPER_EXTENSION = app;
 			};
@@ -757,7 +761,7 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 8Y6V4ZL9MZ;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "RosyWriter-Prefix.pch";
 				INFOPLIST_FILE = "RosyWriter-Info.plist";
@@ -768,7 +772,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.example.apple-samplecode.RosyWriterOpenCV";
 				PRODUCT_NAME = RosyWriterOpenCV;
 				PROVISIONING_PROFILE = "";
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				WRAPPER_EXTENSION = app;
 			};
@@ -893,7 +897,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 8Y6V4ZL9MZ;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "RosyWriter-Prefix.pch";
 				INFOPLIST_FILE = "RosyWriter-Info.plist";
@@ -906,7 +910,7 @@
 				PROVISIONING_PROFILE = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				WRAPPER_EXTENSION = app;
 			};
@@ -920,7 +924,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 8Y6V4ZL9MZ;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "RosyWriter-Prefix.pch";
 				INFOPLIST_FILE = "RosyWriter-Info.plist";
@@ -932,7 +936,7 @@
 				PRODUCT_NAME = RosyWriterOpenGL;
 				PROVISIONING_PROFILE = "";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				WRAPPER_EXTENSION = app;
 			};
