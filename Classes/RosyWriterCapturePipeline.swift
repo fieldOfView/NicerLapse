@@ -125,6 +125,14 @@ class RosyWriterCapturePipeline: NSObject, AVCaptureVideoDataOutputSampleBufferD
     private var currentPreviewPixelBuffer: CVPixelBuffer?
     private var outputVideoFormatDescription: CMFormatDescription?
     
+    // Timelapse
+    var frameDuration: Double = 1.0
+    var shutterDuration: Double = 0.5
+
+    private var frameStart: Double = 0
+    private var shutterOpen: Bool = false
+    private var numberOfFrames: Int64 = 0
+    
     init(delegate: RosyWriterCapturePipelineDelegate, callbackQueue queue: DispatchQueue) {
         recordingOrientation = .portrait
         
@@ -453,10 +461,36 @@ class RosyWriterCapturePipeline: NSObject, AVCaptureVideoDataOutputSampleBufferD
     }
     
     private func renderVideoSampleBuffer(_ sampleBuffer: CMSampleBuffer) {
-        var renderedPixelBuffer: CVPixelBuffer? = nil
-        let timestamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
+        if _recordingStatus != .recording {
+            // Just show the camera image when not recording
+            let sourceImageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
+            self.outputPreviewPixelBuffer(sourceImageBuffer!)
+            return
+        }
         
+        var renderedPixelBuffer: CVPixelBuffer? = nil
+
+        let timestamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
         self.calculateFramerateAtTimestamp(timestamp)
+        
+        let now: Double = Double(DispatchTime.now().uptimeNanoseconds) / 1_000_000_000
+        var appendFrameToVideo: Bool = false
+        
+        if frameStart + frameDuration <= now {
+            // start a new frame
+            //self._renderer.clearAccumulationBuffer()
+            frameStart = now
+            shutterOpen = true
+        } else if frameStart + shutterDuration <= now && shutterOpen {
+            // stop adding frames to average
+            //self._renderer.createAverageFrame()
+            appendFrameToVideo = true
+            shutterOpen = false
+        }
+        
+        if shutterOpen {
+            //self._renderer.addToAccumulationBuffer()
+        }
         
         // We must not use the GPU while running in the background.
         // setRenderingEnabled: takes the same lock so the caller can guarantee no GPU usage once the setter returns.
@@ -475,8 +509,10 @@ class RosyWriterCapturePipeline: NSObject, AVCaptureVideoDataOutputSampleBufferD
             synchronized(self) {
                 self.outputPreviewPixelBuffer(renderedPixelBuffer)
                 
-                if _recordingStatus == .recording {
-                    self._recorder.appendVideoPixelBuffer(renderedPixelBuffer, withPresentationTime: timestamp)
+                if _recordingStatus == .recording && appendFrameToVideo {
+                    let presentationTime: CMTime = CMTimeMake(numberOfFrames, 24)
+                    self._recorder.appendVideoPixelBuffer(renderedPixelBuffer, withPresentationTime: presentationTime)
+                    numberOfFrames = numberOfFrames + 1
                 }
             }
         } else {

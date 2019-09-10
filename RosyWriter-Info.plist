@@ -26,8 +26,6 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>This sample code uses camera</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>This sample code uses microphone</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>This sample code adds video to photo library</string>
 	<key>NSPhotoLibraryUsageDescription</key>
