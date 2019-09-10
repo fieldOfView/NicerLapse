@@ -84,27 +84,12 @@ class RosyWriterOpenGLRenderer: NSObject {
         glBindFramebuffer(GL_FRAMEBUFFER.ui, _accumulationBuffer)
         
         glClearColor(0.0, 0.0, 0.0, 0.0)
-        glClear(GLenum(GL_COLOR_BUFFER_BIT))
+        glClear(GL_COLOR_BUFFER_BIT.ui)
         
         _accumulatedFramesCount = 0
     }
     
     func accumulatePixelBuffer(_ pixelBuffer: CVPixelBuffer!) {
-        struct Const {
-            static let squareVertices: [GLfloat] = [
-                -1.0, -1.0, // bottom left
-                1.0, -1.0, // bottom right
-                -1.0,  1.0, // top left
-                1.0,  1.0, // top right
-            ]
-            static let textureVertices: [Float] = [
-                0.0, 0.0, // bottom left
-                1.0, 0.0, // bottom right
-                0.0,  1.0, // top left
-                1.0,  1.0, // top right
-            ]
-        }
-        
         if _accumulationBuffer == 0 {
             fatalError("Unintialized accumulation buffer")
         }
@@ -133,18 +118,20 @@ class RosyWriterOpenGLRenderer: NSObject {
         var srcTexture: CVOpenGLESTexture? = nil
         bail: do {
             
-            err = CVOpenGLESTextureCacheCreateTextureFromImage(kCFAllocatorDefault,
-                                                               _textureCache!,
-                                                               pixelBuffer,
-                                                               nil,
-                                                               GL_TEXTURE_2D.ui,
-                                                               GL_RGBA,
-                                                               srcDimensions.width,
-                                                               srcDimensions.height,
-                                                               GL_BGRA.ui,
-                                                               GL_UNSIGNED_BYTE.ui,
-                                                               0,
-                                                               &srcTexture)
+            err = CVOpenGLESTextureCacheCreateTextureFromImage(
+                kCFAllocatorDefault,
+                _textureCache!,
+                pixelBuffer,
+                nil,
+                GL_TEXTURE_2D.ui,
+                GL_RGBA,
+                srcDimensions.width,
+                srcDimensions.height,
+                GL_BGRA.ui,
+                GL_UNSIGNED_BYTE.ui,
+                0,
+                &srcTexture
+            )
             if srcTexture == nil || err != 0 {
                 NSLog("Error at CVOpenGLESTextureCacheCreateTextureFromImage %d", err)
                 break bail
@@ -160,24 +147,16 @@ class RosyWriterOpenGLRenderer: NSObject {
             glUniform1i(_frame, 0)
             glUniform1f(_multiplier, 1.0)
             
-            glTexParameteri(GL_TEXTURE_2D.ui, GL_TEXTURE_MIN_FILTER.ui, GL_LINEAR)
-            glTexParameteri(GL_TEXTURE_2D.ui, GL_TEXTURE_MAG_FILTER.ui, GL_LINEAR)
-            glTexParameteri(GL_TEXTURE_2D.ui, GL_TEXTURE_WRAP_S.ui, GL_CLAMP_TO_EDGE)
-            glTexParameteri(GL_TEXTURE_2D.ui, GL_TEXTURE_WRAP_T.ui, GL_CLAMP_TO_EDGE)
-
+            setCommonTextureParameters()
+            
             if _accumulatedFramesCount > 0 {
-                glEnable(GLenum(GL_BLEND));
-                glBlendFunc(GLenum(GL_SRC_ALPHA), GLenum(GL_ONE));
+                glEnable(GL_BLEND.ui)
+                glBlendFunc(GL_SRC_ALPHA.ui, GL_ONE.ui)
             }
                 
-            glVertexAttribPointer(GLuint(ATTRIB_VERTEX), 2, GL_FLOAT.ui, 0, 0, Const.squareVertices)
-            glEnableVertexAttribArray(GLuint(ATTRIB_VERTEX))
-            glVertexAttribPointer(GLuint(ATTRIB_TEXTUREPOSITON), 2, GL_FLOAT.ui, 0, 0, Const.textureVertices)
-            glEnableVertexAttribArray(GLuint(ATTRIB_TEXTUREPOSITON))
-            
-            glDrawArrays(GL_TRIANGLE_STRIP.ui, 0, 4)
+            drawViewport()
 
-            glDisable(GLenum(GL_BLEND));
+            glDisable(GL_BLEND.ui)
 
             glBindTexture(CVOpenGLESTextureGetTarget(srcTexture!), 0)
             
@@ -194,21 +173,6 @@ class RosyWriterOpenGLRenderer: NSObject {
 
     
     func copyRenderedPixelBuffer() -> CVPixelBuffer! {
-        struct Const {
-            static let squareVertices: [GLfloat] = [
-                -1.0, -1.0, // bottom left
-                1.0, -1.0, // bottom right
-                -1.0,  1.0, // top left
-                1.0,  1.0, // top right
-            ]
-            static let textureVertices: [Float] = [
-                0.0, 0.0, // bottom left
-                1.0, 0.0, // bottom right
-                0.0,  1.0, // top left
-                1.0,  1.0, // top right
-            ]
-        }
-        
         if _offscreenBufferHandle == 0 {
             fatalError("Unintialized buffer")
         }
@@ -259,7 +223,8 @@ class RosyWriterOpenGLRenderer: NSObject {
                 GL_BGRA.ui,
                 GL_UNSIGNED_BYTE.ui,
                 0,
-                &dstTexture)
+                &dstTexture
+            )
             if dstTexture == nil || err != 0 {
                 NSLog("Error at CVOpenGLESTextureCacheCreateTextureFromImage %d", err)
                 break bail
@@ -272,32 +237,20 @@ class RosyWriterOpenGLRenderer: NSObject {
             // Set up our destination pixel buffer as the framebuffer's render target.
             glActiveTexture(GL_TEXTURE0.ui)
             glBindTexture(CVOpenGLESTextureGetTarget(dstTexture!), CVOpenGLESTextureGetName(dstTexture!))
-            glTexParameteri(GL_TEXTURE_2D.ui, GL_TEXTURE_MIN_FILTER.ui, GL_LINEAR)
-            glTexParameteri(GL_TEXTURE_2D.ui, GL_TEXTURE_MAG_FILTER.ui, GL_LINEAR)
-            glTexParameteri(GL_TEXTURE_2D.ui, GL_TEXTURE_WRAP_S.ui, GL_CLAMP_TO_EDGE)
-            glTexParameteri(GL_TEXTURE_2D.ui, GL_TEXTURE_WRAP_T.ui, GL_CLAMP_TO_EDGE)
+            setCommonTextureParameters()
             glFramebufferTexture2D(GL_FRAMEBUFFER.ui, GL_COLOR_ATTACHMENT0.ui, CVOpenGLESTextureGetTarget(dstTexture!), CVOpenGLESTextureGetName(dstTexture!), 0)
             
             
             // Render our source pixel buffer.
             glActiveTexture(GL_TEXTURE1.ui)
-            glBindTexture(GLenum(GL_TEXTURE_2D), _accumulationBufferTexture)
+            glBindTexture(GL_TEXTURE_2D.ui, _accumulationBufferTexture)
 
             glUseProgram(_program)
             glUniform1i(_frame, 1)
             glUniform1f(_multiplier, 1.0 / Float(_accumulatedFramesCount))
             
-            glTexParameteri(GL_TEXTURE_2D.ui, GL_TEXTURE_MIN_FILTER.ui, GL_LINEAR)
-            glTexParameteri(GL_TEXTURE_2D.ui, GL_TEXTURE_MAG_FILTER.ui, GL_LINEAR)
-            glTexParameteri(GL_TEXTURE_2D.ui, GL_TEXTURE_WRAP_S.ui, GL_CLAMP_TO_EDGE)
-            glTexParameteri(GL_TEXTURE_2D.ui, GL_TEXTURE_WRAP_T.ui, GL_CLAMP_TO_EDGE)
-            
-            glVertexAttribPointer(GLuint(ATTRIB_VERTEX), 2, GL_FLOAT.ui, 0, 0, Const.squareVertices)
-            glEnableVertexAttribArray(GLuint(ATTRIB_VERTEX))
-            glVertexAttribPointer(GLuint(ATTRIB_TEXTUREPOSITON), 2, GL_FLOAT.ui, 0, 0, Const.textureVertices)
-            glEnableVertexAttribArray(GLuint(ATTRIB_TEXTUREPOSITON))
-            
-            glDrawArrays(GL_TRIANGLE_STRIP.ui, 0, 4)
+            setCommonTextureParameters()
+            drawViewport()
             
             glBindTexture(GL_TEXTURE_2D.ui, 0)
             glActiveTexture(GL_TEXTURE0.ui)
@@ -332,26 +285,22 @@ class RosyWriterOpenGLRenderer: NSObject {
         glDisable(GL_DEPTH_TEST.ui)
         
         // create FBO for accumulating frames
-        glGenFramebuffers(1, &_accumulationBuffer);
-        glGenTextures(1, &_accumulationBufferTexture);
+        glGenFramebuffers(1, &_accumulationBuffer)
+        glGenTextures(1, &_accumulationBufferTexture)
 
         glGenFramebuffers(1, &_offscreenBufferHandle)
         
         bail: do { //breakable block
             // create accumulation fbo
-            glBindTexture(GLenum(GL_TEXTURE_2D), _accumulationBufferTexture);
+            glBindTexture(GL_TEXTURE_2D.ui, _accumulationBufferTexture)
+            glTexImage2D(GL_TEXTURE_2D.ui, 0, GL_RGBA16F, outputDimensions.width, outputDimensions.height, 0, GL_RGBA.ui, GL_HALF_FLOAT.ui, nil)
             
-            glTexImage2D(GLenum(GL_TEXTURE_2D), 0, GL_RGBA16F, outputDimensions.width, outputDimensions.height, 0, GLenum(GL_RGBA), GLenum(GL_HALF_FLOAT), nil);
+            setCommonTextureParameters()
             
-            glTexParameteri(GLenum(GL_TEXTURE_2D), GLenum(GL_TEXTURE_MIN_FILTER), GL_LINEAR);
-            glTexParameteri(GLenum(GL_TEXTURE_2D), GLenum(GL_TEXTURE_MAG_FILTER), GL_LINEAR);
-            glTexParameteri(GLenum(GL_TEXTURE_2D), GLenum(GL_TEXTURE_WRAP_S), GL_CLAMP_TO_EDGE);
-            glTexParameteri(GLenum(GL_TEXTURE_2D), GLenum(GL_TEXTURE_WRAP_T), GL_CLAMP_TO_EDGE);
+            glBindFramebuffer(GL_FRAMEBUFFER.ui, _accumulationBuffer)
+            glFramebufferTexture2D(GL_FRAMEBUFFER.ui, GL_COLOR_ATTACHMENT0.ui, GL_TEXTURE_2D.ui, _accumulationBufferTexture, 0)
             
-            glBindFramebuffer(GLenum(GL_FRAMEBUFFER), _accumulationBuffer);
-            glFramebufferTexture2D(GLenum(GL_FRAMEBUFFER), GLenum(GL_COLOR_ATTACHMENT0), GLenum(GL_TEXTURE_2D), _accumulationBufferTexture, 0);
-            
-            let status: GLuint = glCheckFramebufferStatus(GLenum(GL_FRAMEBUFFER));
+            let status: GLuint = glCheckFramebufferStatus(GL_FRAMEBUFFER.ui)
             if(status != GL_FRAMEBUFFER_COMPLETE) {
                 NSLog("Accumulation FBO is not complete : %d", status)
                 success = false
@@ -393,7 +342,8 @@ class RosyWriterOpenGLRenderer: NSObject {
             glue.createProgram(vertSrc, fragSrc,
                 attribName, attribLocation,
                 [], &uniformLocations,
-                &_program)
+                &_program
+            )
             if _program == 0 {
                 NSLog("Problem initializing the program.")
                 success = false
@@ -523,4 +473,35 @@ private func preallocatePixelBuffersInPool(_ pool: CVPixelBufferPool, _ auxAttri
         pixelBuffers.append(pixelBuffer!)
     }
     pixelBuffers.removeAll()
+}
+
+private func drawViewport() {
+    struct Const {
+        static let squareVertices: [GLfloat] = [
+            -1.0, -1.0, // bottom left
+            1.0, -1.0, // bottom right
+            -1.0,  1.0, // top left
+            1.0,  1.0, // top right
+        ]
+        static let textureVertices: [Float] = [
+            0.0, 0.0, // bottom left
+            1.0, 0.0, // bottom right
+            0.0,  1.0, // top left
+            1.0,  1.0, // top right
+        ]
+    }
+    
+    glVertexAttribPointer(GLuint(ATTRIB_VERTEX), 2, GL_FLOAT.ui, 0, 0, Const.squareVertices)
+    glEnableVertexAttribArray(GLuint(ATTRIB_VERTEX))
+    glVertexAttribPointer(GLuint(ATTRIB_TEXTUREPOSITON), 2, GL_FLOAT.ui, 0, 0, Const.textureVertices)
+    glEnableVertexAttribArray(GLuint(ATTRIB_TEXTUREPOSITON))
+    
+    glDrawArrays(GL_TRIANGLE_STRIP.ui, 0, 4)
+}
+
+private func setCommonTextureParameters() {
+    glTexParameteri(GL_TEXTURE_2D.ui, GL_TEXTURE_MIN_FILTER.ui, GL_LINEAR)
+    glTexParameteri(GL_TEXTURE_2D.ui, GL_TEXTURE_MAG_FILTER.ui, GL_LINEAR)
+    glTexParameteri(GL_TEXTURE_2D.ui, GL_TEXTURE_WRAP_S.ui, GL_CLAMP_TO_EDGE)
+    glTexParameteri(GL_TEXTURE_2D.ui, GL_TEXTURE_WRAP_T.ui, GL_CLAMP_TO_EDGE)
 }

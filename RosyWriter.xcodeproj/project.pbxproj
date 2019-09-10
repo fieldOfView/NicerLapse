@@ -102,14 +102,6 @@
 			name = Shaders;
 			sourceTree = "<group>";
 		};
-		5DC09BF119B7F51B0025A16E /* Renderers */ = {
-			isa = PBXGroup;
-			children = (
-				D7F9F9631E03776D009F43D5 /* RosyWriterOpenGLRenderer.swift */,
-			);
-			name = Renderers;
-			sourceTree = "<group>";
-		};
 		6F90DDCA1395CAAA00125BDA = {
 			isa = PBXGroup;
 			children = (
@@ -157,7 +149,7 @@
 			children = (
 				D7F9F95C1E037744009F43D5 /* RosyWriterViewController.swift */,
 				D7F9F95B1E037744009F43D5 /* RosyWriterCapturePipeline.swift */,
-				5DC09BF119B7F51B0025A16E /* Renderers */,
+				D7F9F9631E03776D009F43D5 /* RosyWriterOpenGLRenderer.swift */,
 				D7F9F95A1E037744009F43D5 /* RosyWriterAppDelegate.swift */,
 			);
 			path = Classes;
