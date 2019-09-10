@@ -24,21 +24,28 @@ private let ATTRIB_TEXTUREPOSITON = 1
 private let NUM_ATTRIBUTES = 2
 
 @objc(RosyWriterOpenGLRenderer)
-class RosyWriterOpenGLRenderer: NSObject, RosyWriterRenderer {
+
+class RosyWriterOpenGLRenderer: NSObject {
     private var _oglContext: EAGLContext!
     private var _textureCache: CVOpenGLESTextureCache?
     private var _renderTextureCache: CVOpenGLESTextureCache?
     private var _bufferPool: CVPixelBufferPool?
     private var _bufferPoolAuxAttributes: CFDictionary?
     private var _outputFormatDescription: CMFormatDescription?
+    private var _dstDimensions: CMVideoDimensions = CMVideoDimensions(width: 0, height: 0)
     private var _program: GLuint = 0
     private var _frame: GLint = 0
+    private var _multiplier: GLint = 0
     private var _offscreenBufferHandle: GLuint = 0
+    
+    private var _accumulationBuffer: GLuint = GLuint()
+    private var _accumulationBufferTexture: GLuint = GLuint()
+    private var _accumulatedFramesCount: Int64 = 0
     
     //MARK: API
     
     override init() {
-        _oglContext = EAGLContext(api: .openGLES2)
+        _oglContext = EAGLContext(api: .openGLES3)
         if _oglContext == nil {
             fatalError("Problem with OpenGL context.")
         }
@@ -73,7 +80,120 @@ class RosyWriterOpenGLRenderer: NSObject, RosyWriterRenderer {
         self.deleteBuffers()
     }
     
-    func copyRenderedPixelBuffer(_ pixelBuffer: CVPixelBuffer!) -> CVPixelBuffer! {
+    func clearAccumulationBuffer() {
+        glBindFramebuffer(GL_FRAMEBUFFER.ui, _accumulationBuffer)
+        
+        glClearColor(0.0, 0.0, 0.0, 0.0)
+        glClear(GLenum(GL_COLOR_BUFFER_BIT))
+        
+        _accumulatedFramesCount = 0
+    }
+    
+    func accumulatePixelBuffer(_ pixelBuffer: CVPixelBuffer!) {
+        struct Const {
+            static let squareVertices: [GLfloat] = [
+                -1.0, -1.0, // bottom left
+                1.0, -1.0, // bottom right
+                -1.0,  1.0, // top left
+                1.0,  1.0, // top right
+            ]
+            static let textureVertices: [Float] = [
+                0.0, 0.0, // bottom left
+                1.0, 0.0, // bottom right
+                0.0,  1.0, // top left
+                1.0,  1.0, // top right
+            ]
+        }
+        
+        if _accumulationBuffer == 0 {
+            fatalError("Unintialized accumulation buffer")
+        }
+        
+        if pixelBuffer == nil {
+            fatalError("NULL pixel buffer")
+        }
+        
+        let srcDimensions = CMVideoDimensions(width: Int32(CVPixelBufferGetWidth(pixelBuffer)), height: Int32(CVPixelBufferGetHeight(pixelBuffer)))
+        if srcDimensions.width != _dstDimensions.width || srcDimensions.height != _dstDimensions.height {
+            fatalError("Invalid pixel buffer dimensions")
+        }
+        
+        if CVPixelBufferGetPixelFormatType(pixelBuffer) != OSType(kCVPixelFormatType_32BGRA) {
+            fatalError("Invalid pixel buffer format")
+        }
+        
+        let oldContext = EAGLContext.current()
+        if oldContext !== _oglContext {
+            if !EAGLContext.setCurrent(_oglContext) {
+                fatalError("Problem with OpenGL context")
+            }
+        }
+        
+        var err: CVReturn = noErr
+        var srcTexture: CVOpenGLESTexture? = nil
+        bail: do {
+            
+            err = CVOpenGLESTextureCacheCreateTextureFromImage(kCFAllocatorDefault,
+                                                               _textureCache!,
+                                                               pixelBuffer,
+                                                               nil,
+                                                               GL_TEXTURE_2D.ui,
+                                                               GL_RGBA,
+                                                               srcDimensions.width,
+                                                               srcDimensions.height,
+                                                               GL_BGRA.ui,
+                                                               GL_UNSIGNED_BYTE.ui,
+                                                               0,
+                                                               &srcTexture)
+            if srcTexture == nil || err != 0 {
+                NSLog("Error at CVOpenGLESTextureCacheCreateTextureFromImage %d", err)
+                break bail
+            }
+            
+            glBindFramebuffer(GL_FRAMEBUFFER.ui, _accumulationBuffer)
+            glViewport(0, 0, srcDimensions.width, srcDimensions.height)
+            glUseProgram(_program)
+            
+            // Render our source pixel buffer.
+            glActiveTexture(GL_TEXTURE0.ui)
+            glBindTexture(CVOpenGLESTextureGetTarget(srcTexture!), CVOpenGLESTextureGetName(srcTexture!))
+            glUniform1i(_frame, 0)
+            glUniform1f(_multiplier, 1.0)
+            
+            glTexParameteri(GL_TEXTURE_2D.ui, GL_TEXTURE_MIN_FILTER.ui, GL_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D.ui, GL_TEXTURE_MAG_FILTER.ui, GL_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D.ui, GL_TEXTURE_WRAP_S.ui, GL_CLAMP_TO_EDGE)
+            glTexParameteri(GL_TEXTURE_2D.ui, GL_TEXTURE_WRAP_T.ui, GL_CLAMP_TO_EDGE)
+
+            if _accumulatedFramesCount > 0 {
+                glEnable(GLenum(GL_BLEND));
+                glBlendFunc(GLenum(GL_SRC_ALPHA), GLenum(GL_ONE));
+            }
+                
+            glVertexAttribPointer(GLuint(ATTRIB_VERTEX), 2, GL_FLOAT.ui, 0, 0, Const.squareVertices)
+            glEnableVertexAttribArray(GLuint(ATTRIB_VERTEX))
+            glVertexAttribPointer(GLuint(ATTRIB_TEXTUREPOSITON), 2, GL_FLOAT.ui, 0, 0, Const.textureVertices)
+            glEnableVertexAttribArray(GLuint(ATTRIB_TEXTUREPOSITON))
+            
+            glDrawArrays(GL_TRIANGLE_STRIP.ui, 0, 4)
+
+            glDisable(GLenum(GL_BLEND));
+
+            glBindTexture(CVOpenGLESTextureGetTarget(srcTexture!), 0)
+            
+            // Make sure that outstanding GL commands which render to the destination pixel buffer have been submitted.
+            // AVAssetWriter, AVSampleBufferDisplayLayer, and GL will block until the rendering is complete when sourcing from this pixel buffer.
+            glFlush()
+        } //bail:
+        if oldContext !== _oglContext {
+            EAGLContext.setCurrent(oldContext)
+        }
+        
+        _accumulatedFramesCount = _accumulatedFramesCount + 1
+    }
+
+    
+    func copyRenderedPixelBuffer() -> CVPixelBuffer! {
         struct Const {
             static let squareVertices: [GLfloat] = [
                 -1.0, -1.0, // bottom left
@@ -93,18 +213,12 @@ class RosyWriterOpenGLRenderer: NSObject, RosyWriterRenderer {
             fatalError("Unintialized buffer")
         }
         
-        if pixelBuffer == nil {
-            fatalError("NULL pixel buffer")
+        if _accumulationBufferTexture == 0 {
+            fatalError("Uninitialized texture")
         }
         
-        let srcDimensions = CMVideoDimensions(width: Int32(CVPixelBufferGetWidth(pixelBuffer)), height: Int32(CVPixelBufferGetHeight(pixelBuffer)))
-        let dstDimensions = CMVideoFormatDescriptionGetDimensions(_outputFormatDescription!)
-        if srcDimensions.width != dstDimensions.width || srcDimensions.height != dstDimensions.height {
-            fatalError("Invalid pixel buffer dimensions")
-        }
-        
-        if CVPixelBufferGetPixelFormatType(pixelBuffer) != OSType(kCVPixelFormatType_32BGRA) {
-            fatalError("Invalid pixel buffer format")
+        if _accumulatedFramesCount <= 0 {
+            fatalError("Accumulation buffer is empty")
         }
         
         let oldContext = EAGLContext.current()
@@ -115,27 +229,9 @@ class RosyWriterOpenGLRenderer: NSObject, RosyWriterRenderer {
         }
         
         var err: CVReturn = noErr
-        var srcTexture: CVOpenGLESTexture? = nil
         var dstTexture: CVOpenGLESTexture? = nil
         var dstPixelBuffer: CVPixelBuffer? = nil
         bail: do {
-            
-            err = CVOpenGLESTextureCacheCreateTextureFromImage(kCFAllocatorDefault,
-                _textureCache!,
-                pixelBuffer,
-                nil,
-                GL_TEXTURE_2D.ui,
-                GL_RGBA,
-                srcDimensions.width,
-                srcDimensions.height,
-                GL_BGRA.ui,
-                GL_UNSIGNED_BYTE.ui,
-                0,
-                &srcTexture)
-            if srcTexture == nil || err != 0 {
-                NSLog("Error at CVOpenGLESTextureCacheCreateTextureFromImage %d", err)
-                break bail
-            }
             
             err = CVPixelBufferPoolCreatePixelBufferWithAuxAttributes(kCFAllocatorDefault, _bufferPool!, _bufferPoolAuxAttributes, &dstPixelBuffer)
             if err == kCVReturnWouldExceedAllocationThreshold {
@@ -158,8 +254,8 @@ class RosyWriterOpenGLRenderer: NSObject, RosyWriterRenderer {
                 nil,
                 GL_TEXTURE_2D.ui,
                 GL_RGBA,
-                dstDimensions.width,
-                dstDimensions.height,
+                _dstDimensions.width,
+                _dstDimensions.height,
                 GL_BGRA.ui,
                 GL_UNSIGNED_BYTE.ui,
                 0,
@@ -170,8 +266,7 @@ class RosyWriterOpenGLRenderer: NSObject, RosyWriterRenderer {
             }
             
             glBindFramebuffer(GL_FRAMEBUFFER.ui, _offscreenBufferHandle)
-            glViewport(0, 0, srcDimensions.width, srcDimensions.height)
-            glUseProgram(_program)
+            glViewport(0, 0, _dstDimensions.width, _dstDimensions.height)
             
             
             // Set up our destination pixel buffer as the framebuffer's render target.
@@ -186,8 +281,11 @@ class RosyWriterOpenGLRenderer: NSObject, RosyWriterRenderer {
             
             // Render our source pixel buffer.
             glActiveTexture(GL_TEXTURE1.ui)
-            glBindTexture(CVOpenGLESTextureGetTarget(srcTexture!), CVOpenGLESTextureGetName(srcTexture!))
+            glBindTexture(GLenum(GL_TEXTURE_2D), _accumulationBufferTexture)
+
+            glUseProgram(_program)
             glUniform1i(_frame, 1)
+            glUniform1f(_multiplier, 1.0 / Float(_accumulatedFramesCount))
             
             glTexParameteri(GL_TEXTURE_2D.ui, GL_TEXTURE_MIN_FILTER.ui, GL_LINEAR)
             glTexParameteri(GL_TEXTURE_2D.ui, GL_TEXTURE_MAG_FILTER.ui, GL_LINEAR)
@@ -201,7 +299,8 @@ class RosyWriterOpenGLRenderer: NSObject, RosyWriterRenderer {
             
             glDrawArrays(GL_TRIANGLE_STRIP.ui, 0, 4)
             
-            glBindTexture(CVOpenGLESTextureGetTarget(srcTexture!), 0)
+            glBindTexture(GL_TEXTURE_2D.ui, 0)
+            glActiveTexture(GL_TEXTURE0.ui)
             glBindTexture(CVOpenGLESTextureGetTarget(dstTexture!), 0)
             
             // Make sure that outstanding GL commands which render to the destination pixel buffer have been submitted.
@@ -232,10 +331,38 @@ class RosyWriterOpenGLRenderer: NSObject, RosyWriterRenderer {
         
         glDisable(GL_DEPTH_TEST.ui)
         
+        // create FBO for accumulating frames
+        glGenFramebuffers(1, &_accumulationBuffer);
+        glGenTextures(1, &_accumulationBufferTexture);
+
         glGenFramebuffers(1, &_offscreenBufferHandle)
-        glBindFramebuffer(GL_FRAMEBUFFER.ui, _offscreenBufferHandle)
         
         bail: do { //breakable block
+            // create accumulation fbo
+            glBindTexture(GLenum(GL_TEXTURE_2D), _accumulationBufferTexture);
+            
+            glTexImage2D(GLenum(GL_TEXTURE_2D), 0, GL_RGBA16F, outputDimensions.width, outputDimensions.height, 0, GLenum(GL_RGBA), GLenum(GL_HALF_FLOAT), nil);
+            
+            glTexParameteri(GLenum(GL_TEXTURE_2D), GLenum(GL_TEXTURE_MIN_FILTER), GL_LINEAR);
+            glTexParameteri(GLenum(GL_TEXTURE_2D), GLenum(GL_TEXTURE_MAG_FILTER), GL_LINEAR);
+            glTexParameteri(GLenum(GL_TEXTURE_2D), GLenum(GL_TEXTURE_WRAP_S), GL_CLAMP_TO_EDGE);
+            glTexParameteri(GLenum(GL_TEXTURE_2D), GLenum(GL_TEXTURE_WRAP_T), GL_CLAMP_TO_EDGE);
+            
+            glBindFramebuffer(GLenum(GL_FRAMEBUFFER), _accumulationBuffer);
+            glFramebufferTexture2D(GLenum(GL_FRAMEBUFFER), GLenum(GL_COLOR_ATTACHMENT0), GLenum(GL_TEXTURE_2D), _accumulationBufferTexture, 0);
+            
+            let status: GLuint = glCheckFramebufferStatus(GLenum(GL_FRAMEBUFFER));
+            if(status != GL_FRAMEBUFFER_COMPLETE) {
+                NSLog("Accumulation FBO is not complete : %d", status)
+                success = false
+                break bail
+            }
+            
+            clearAccumulationBuffer()
+            
+            // Create offscreen buffer with texture cache
+            glBindFramebuffer(GL_FRAMEBUFFER.ui, _offscreenBufferHandle)
+ 
             var err = CVOpenGLESTextureCacheCreate(kCFAllocatorDefault, nil, _oglContext, nil, &_textureCache)
             if err != 0 {
                 NSLog("Error at CVOpenGLESTextureCacheCreate %d", err)
@@ -273,6 +400,7 @@ class RosyWriterOpenGLRenderer: NSObject, RosyWriterRenderer {
                 break bail
             }
             _frame = glue.getUniformLocation(_program, "videoframe")
+            _multiplier = glue.getUniformLocation(_program, "multiplier")
             
             let maxRetainedBufferCount = clientRetainedBufferCountHint
             _bufferPool = createPixelBufferPool(outputDimensions.width, outputDimensions.height, FourCharCode(kCVPixelFormatType_32BGRA), Int32(maxRetainedBufferCount))
@@ -295,11 +423,13 @@ class RosyWriterOpenGLRenderer: NSObject, RosyWriterRenderer {
             }
             CMVideoFormatDescriptionCreateForImageBuffer(kCFAllocatorDefault, testPixelBuffer!, &outputFormatDescription)
             _outputFormatDescription = outputFormatDescription
-            
+            _dstDimensions = CMVideoFormatDescriptionGetDimensions(_outputFormatDescription!)
+         
         } //bail:
         if !success {
             self.deleteBuffers()
         }
+        
         if oldContext !== _oglContext {
             _ = EAGLContext.setCurrent(oldContext)
         }
@@ -312,6 +442,14 @@ class RosyWriterOpenGLRenderer: NSObject, RosyWriterRenderer {
             if !EAGLContext.setCurrent(_oglContext) {
                 fatalError("Problem with OpenGL context")
             }
+        }
+        if _accumulationBuffer != 0 {
+            glDeleteFramebuffers(1, &_accumulationBuffer)
+            _accumulationBuffer = 0
+        }
+        if _accumulationBufferTexture != 0 {
+            glDeleteTextures(1, &_accumulationBufferTexture)
+            _accumulationBufferTexture = 0
         }
         if _offscreenBufferHandle != 0 {
             glDeleteFramebuffers(1, &_offscreenBufferHandle)

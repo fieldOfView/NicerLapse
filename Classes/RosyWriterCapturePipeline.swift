@@ -100,7 +100,7 @@ class RosyWriterCapturePipeline: NSObject, AVCaptureVideoDataOutputSampleBufferD
     private var _sessionQueue: DispatchQueue
     private var _videoDataOutputQueue: DispatchQueue
     
-    private var _renderer: RosyWriterRenderer
+    private var _renderer: RosyWriterOpenGLRenderer
     // When set to false the GPU will not be used after the setRenderingEnabled: call returns.
     private /*atomic*/ var _renderingEnabled: Bool = false
     
@@ -371,7 +371,7 @@ class RosyWriterCapturePipeline: NSObject, AVCaptureVideoDataOutputSampleBufferD
         
         if !_renderer.operatesInPlace,
         let outputFormatDescription = _renderer.outputFormatDescription {
-            self.outputVideoFormatDescription = outputFormatDescription!
+            self.outputVideoFormatDescription = outputFormatDescription
         } else {
             self.outputVideoFormatDescription = inputFormatDescription
         }
@@ -478,26 +478,25 @@ class RosyWriterCapturePipeline: NSObject, AVCaptureVideoDataOutputSampleBufferD
         
         if frameStart + frameDuration <= now {
             // start a new frame
-            //self._renderer.clearAccumulationBuffer()
+            self._renderer.clearAccumulationBuffer()
             frameStart = now
             shutterOpen = true
         } else if frameStart + shutterDuration <= now && shutterOpen {
             // stop adding frames to average
-            //self._renderer.createAverageFrame()
-            appendFrameToVideo = true
             shutterOpen = false
-        }
-        
-        if shutterOpen {
-            //self._renderer.addToAccumulationBuffer()
+            appendFrameToVideo = true
         }
         
         // We must not use the GPU while running in the background.
         // setRenderingEnabled: takes the same lock so the caller can guarantee no GPU usage once the setter returns.
         let returnFlag: Bool = synchronized(_renderer) {
             if _renderingEnabled {
-                let sourcePixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
-                renderedPixelBuffer = self._renderer.copyRenderedPixelBuffer(sourcePixelBuffer)
+                if shutterOpen {
+                    let sourcePixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
+                    self._renderer.accumulatePixelBuffer(sourcePixelBuffer)
+                }
+
+                renderedPixelBuffer = self._renderer.copyRenderedPixelBuffer()
                 return false
             } else {
                 return true //indicates return from func

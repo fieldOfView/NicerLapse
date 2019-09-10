@@ -31,7 +31,6 @@
 		D7F9F95E1E037744009F43D5 /* RosyWriterCapturePipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7F9F95B1E037744009F43D5 /* RosyWriterCapturePipeline.swift */; };
 		D7F9F95F1E037744009F43D5 /* RosyWriterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7F9F95C1E037744009F43D5 /* RosyWriterViewController.swift */; };
 		D7F9F9681E03776D009F43D5 /* RosyWriterOpenGLRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7F9F9631E03776D009F43D5 /* RosyWriterOpenGLRenderer.swift */; };
-		D7F9F9691E03776D009F43D5 /* RosyWriterRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7F9F9641E03776D009F43D5 /* RosyWriterRenderer.swift */; };
 		D7F9F9861E037911009F43D5 /* FourCharCode+StringLiteralConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7F9F9831E037911009F43D5 /* FourCharCode+StringLiteralConvertible.swift */; };
 		D7F9F9871E037911009F43D5 /* NumTypes+Conversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7F9F9841E037911009F43D5 /* NumTypes+Conversion.swift */; };
 		D7F9F9881E037911009F43D5 /* ObjC.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7F9F9851E037911009F43D5 /* ObjC.swift */; };
@@ -68,7 +67,6 @@
 		D7F9F95B1E037744009F43D5 /* RosyWriterCapturePipeline.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RosyWriterCapturePipeline.swift; sourceTree = "<group>"; };
 		D7F9F95C1E037744009F43D5 /* RosyWriterViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RosyWriterViewController.swift; sourceTree = "<group>"; };
 		D7F9F9631E03776D009F43D5 /* RosyWriterOpenGLRenderer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RosyWriterOpenGLRenderer.swift; sourceTree = "<group>"; };
-		D7F9F9641E03776D009F43D5 /* RosyWriterRenderer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RosyWriterRenderer.swift; sourceTree = "<group>"; };
 		D7F9F9831E037911009F43D5 /* FourCharCode+StringLiteralConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "FourCharCode+StringLiteralConvertible.swift"; sourceTree = "<group>"; };
 		D7F9F9841E037911009F43D5 /* NumTypes+Conversion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NumTypes+Conversion.swift"; sourceTree = "<group>"; };
 		D7F9F9851E037911009F43D5 /* ObjC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObjC.swift; sourceTree = "<group>"; };
@@ -107,7 +105,6 @@
 		5DC09BF119B7F51B0025A16E /* Renderers */ = {
 			isa = PBXGroup;
 			children = (
-				D7F9F9641E03776D009F43D5 /* RosyWriterRenderer.swift */,
 				D7F9F9631E03776D009F43D5 /* RosyWriterOpenGLRenderer.swift */,
 			);
 			name = Renderers;
@@ -293,7 +290,6 @@
 				D7F9F9561E0376EE009F43D5 /* MovieRecorder.swift in Sources */,
 				D7F9F95E1E037744009F43D5 /* RosyWriterCapturePipeline.swift in Sources */,
 				D7F9F9591E037705009F43D5 /* ShaderUtilities.swift in Sources */,
-				D7F9F9691E03776D009F43D5 /* RosyWriterRenderer.swift in Sources */,
 				D7F9F9681E03776D009F43D5 /* RosyWriterOpenGLRenderer.swift in Sources */,
 				D7F9F9861E037911009F43D5 /* FourCharCode+StringLiteralConvertible.swift in Sources */,
 			);
