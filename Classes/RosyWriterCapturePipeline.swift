@@ -55,7 +55,6 @@ Really you need to test and measure the latency in your own application pipeline
 
 private let RETAINED_BUFFER_COUNT = 6
 
-//-DRECORD_AUDIO
 //-DLOG_STATUS_TRANSITIONS
 //Build Settings>Swift Compiler - Custom Flags>Other Swift Flags
 
@@ -86,19 +85,17 @@ private enum RosyWriterRecordingStatus: Int {
 
 
 @objc(RosyWriterCapturePipeline)
-class RosyWriterCapturePipeline: NSObject, AVCaptureAudioDataOutputSampleBufferDelegate, AVCaptureVideoDataOutputSampleBufferDelegate, MovieRecorderDelegate {
+class RosyWriterCapturePipeline: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate, MovieRecorderDelegate {
     private var _previousSecondTimestamps: [CMTime] = []
     
     private var _captureSession: AVCaptureSession?
     private var _videoDevice: AVCaptureDevice?
-    private var _audioConnection: AVCaptureConnection?
     private var _videoConnection: AVCaptureConnection?
     private var _videoBufferOrientation: AVCaptureVideoOrientation = .portrait
     private var _running: Bool = false
     private var _startCaptureSessionOnEnteringForeground: Bool = false
     private var _applicationWillEnterForegroundNotificationObserver: AnyObject?
     private var _videoCompressionSettings: [String : Any] = [:]
-    private var _audioCompressionSettings: [String : Any] = [:]
     
     private var _sessionQueue: DispatchQueue
     private var _videoDataOutputQueue: DispatchQueue
@@ -127,19 +124,16 @@ class RosyWriterCapturePipeline: NSObject, AVCaptureAudioDataOutputSampleBufferD
     
     private var currentPreviewPixelBuffer: CVPixelBuffer?
     private var outputVideoFormatDescription: CMFormatDescription?
-    private var outputAudioFormatDescription: CMFormatDescription?
     
     init(delegate: RosyWriterCapturePipelineDelegate, callbackQueue queue: DispatchQueue) {
         recordingOrientation = .portrait
         
-        _recordingURL = URL(fileURLWithPath: NSString.path(withComponents: [NSTemporaryDirectory(), "Movie.MOV"]) as String)
+        _recordingURL = URL(fileURLWithPath: NSString.path(withComponents: [NSTemporaryDirectory(), "Movie.mp4"]) as String)
         
         _sessionQueue = DispatchQueue(label: "com.apple.sample.capturepipeline.session", attributes: [])
         
         // In a multi-threaded producer consumer system it's generally a good idea to make sure that producers do not get starved of CPU time by their consumers.
         // In this app we start with VideoDataOutput frames on a high priority queue, and downstream consumers use default priority queues.
-        // Audio uses a default priority queue because we aren't monitoring it live and just want to get it into the movie.
-        // AudioDataOutput can tolerate more latency than VideoDataOutput as its buffers aren't allocated out of a fixed size pool.
         let highQueue = DispatchQueue.global(qos: .userInteractive)
         //### representing "serial" with empty option makes code less readable, Apple should reconsider...
         //### and another issue here: https://bugs.swift.org/browse/SR-1859, Apple, please update the documentation of Dispatch soon.
@@ -179,7 +173,7 @@ class RosyWriterCapturePipeline: NSObject, AVCaptureAudioDataOutputSampleBufferD
         _sessionQueue.sync {
             self._running = false
             
-            // the captureSessionDidStopRunning method will stop recording if necessary as well, but we do it here so that the last video and audio samples are better aligned
+            // the captureSessionDidStopRunning method will stop recording if necessary as well, but we do it here so that the last video samples are better aligned
             self.stopRecording() // does nothing if we aren't currently recording
             
             self._captureSession?.stopRunning()
@@ -206,25 +200,6 @@ class RosyWriterCapturePipeline: NSObject, AVCaptureAudioDataOutputSampleBufferD
             // Client must stop us running before we can be deallocated
             self.applicationWillEnterForeground()
         }
-        
-        #if RECORD_AUDIO
-            /* Audio */
-            let audioDevice = AVCaptureDevice.default(for: .audio)!
-            let audioIn = try! AVCaptureDeviceInput(device: audioDevice)
-            if _captureSession!.canAddInput(audioIn) {
-                _captureSession!.addInput(audioIn)
-            }
-            
-            let audioOut = AVCaptureAudioDataOutput()
-            // Put audio on its own queue to ensure that our video processing doesn't cause us to drop audio
-            let audioCaptureQueue = DispatchQueue(label: "com.apple.sample.capturepipeline.audio", attributes: [])
-            audioOut.setSampleBufferDelegate(self, queue: audioCaptureQueue)
-            
-            if _captureSession!.canAddOutput(audioOut) {
-                _captureSession!.addOutput(audioOut)
-            }
-            _audioConnection = audioOut.connection(with: AVMediaType.audio)
-        #endif // RECORD_AUDIO
         
         /* Video */
         guard let videoDevice = AVCaptureDevice.default(for: AVMediaType.video) else {
@@ -285,10 +260,7 @@ class RosyWriterCapturePipeline: NSObject, AVCaptureAudioDataOutputSampleBufferD
         }
         
         // Get the recommended compression settings after configuring the session/device.
-        #if RECORD_AUDIO
-        _audioCompressionSettings = audioOut.recommendedAudioSettingsForAssetWriter(writingTo: AVFileType.mov) as! [String: Any]
-        #endif
-        _videoCompressionSettings = videoOut.recommendedVideoSettingsForAssetWriter(writingTo: AVFileType.mov)!
+        _videoCompressionSettings = videoOut.recommendedVideoSettingsForAssetWriter(writingTo: AVFileType.mp4)!
         
         _videoBufferOrientation = _videoConnection!.videoOrientation
         
@@ -305,7 +277,6 @@ class RosyWriterCapturePipeline: NSObject, AVCaptureAudioDataOutputSampleBufferD
             _captureSession = nil
             
             _videoCompressionSettings = [:]
-            _audioCompressionSettings = [:]
         }
     }
     
@@ -478,14 +449,6 @@ class RosyWriterCapturePipeline: NSObject, AVCaptureAudioDataOutputSampleBufferD
             } else {
                 self.renderVideoSampleBuffer(sampleBuffer)
             }
-        } else if connection === _audioConnection {
-            self.outputAudioFormatDescription = formatDescription
-            
-            synchronized(self) {
-                if _recordingStatus == .recording {
-                    self._recorder.appendAudioSampleBuffer(sampleBuffer)
-                }
-            }
         }
     }
     
@@ -558,10 +521,6 @@ class RosyWriterCapturePipeline: NSObject, AVCaptureAudioDataOutputSampleBufferD
         
         let callbackQueue = DispatchQueue(label: "com.apple.sample.capturepipeline.recordercallback", attributes: []); // guarantee ordering of callbacks with a serial queue
         let recorder = MovieRecorder(url: _recordingURL, delegate: self, callbackQueue: callbackQueue)
-        
-        #if RECORD_AUDIO
-            recorder.addAudioTrackWithSourceFormatDescription(self.outputAudioFormatDescription!, settings: _audioCompressionSettings)
-        #endif // RECORD_AUDIO
         
         // Front camera recording shouldn't be mirrored
         let videoTransform = self.transformFromVideoBufferOrientationToOrientation(self.recordingOrientation, withAutoMirroring: false)
