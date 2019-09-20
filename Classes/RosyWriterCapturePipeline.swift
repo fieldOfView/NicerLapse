@@ -242,11 +242,11 @@ class RosyWriterCapturePipeline: NSObject, AVCaptureVideoDataOutputSampleBufferD
         _videoConnection = videoOut.connection(with: AVMediaType.video)
         
         var frameRate: Int32
-        var sessionPreset: AVCaptureSession.Preset
+        var sessionPreset: AVCaptureSession.Preset = AVCaptureSession.Preset.high
         if #available(iOS 9.0, *) {
-            sessionPreset = AVCaptureSession.Preset.hd4K3840x2160
-        } else {
-            sessionPreset = AVCaptureSession.Preset.high
+            if (_captureSession?.canSetSessionPreset(AVCaptureSession.Preset.hd4K3840x2160))! {
+                sessionPreset = AVCaptureSession.Preset.hd4K3840x2160
+            }
         }
         var frameDuration = kCMTimeInvalid
         // For single core systems like iPhone 4 and iPod Touch 4th Generation we use a lower resolution and framerate to maintain real-time performance.
