@@ -30,6 +30,7 @@ class RosyWriterViewController: UIViewController, RosyWriterCapturePipelineDeleg
     private var _previewView: OpenGLPixelBufferView?
     private var _capturePipeline: RosyWriterCapturePipeline!
     
+    @IBOutlet private var cameraView: UIView!
     @IBOutlet private var recordButton: UIBarButtonItem!
     @IBOutlet private var framerateLabel: UILabel!
     @IBOutlet private var dimensionsLabel: UILabel!
@@ -115,6 +116,16 @@ class RosyWriterViewController: UIViewController, RosyWriterCapturePipelineDeleg
         return true
     }
     
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        let screenSize = cameraView.bounds.size
+        if let touchPoint = touches.first {
+            let x = touchPoint.location(in: cameraView).y / screenSize.height
+            let y = 1.0 - touchPoint.location(in: cameraView).x / screenSize.width
+            let focusPoint = CGPoint(x: x, y: y)
+
+            _capturePipeline.setFocusPoint(focusPoint: focusPoint)
+        }
+    }
     //MARK: - UI
     
     @IBAction func toggleRecording(_: Any) {

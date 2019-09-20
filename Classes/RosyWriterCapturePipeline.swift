@@ -126,8 +126,8 @@ class RosyWriterCapturePipeline: NSObject, AVCaptureVideoDataOutputSampleBufferD
     private var outputVideoFormatDescription: CMFormatDescription?
     
     // Timelapse
-    var frameDuration: Double = 1.0
-    var shutterDuration: Double = 0.5
+    var frameDuration: Double = 2.0
+    var shutterDuration: Double = 1.0
 
     private var frameStart: Double = 0
     private var shutterOpen: Bool = false
@@ -242,7 +242,12 @@ class RosyWriterCapturePipeline: NSObject, AVCaptureVideoDataOutputSampleBufferD
         _videoConnection = videoOut.connection(with: AVMediaType.video)
         
         var frameRate: Int32
-        var sessionPreset = AVCaptureSession.Preset.high
+        var sessionPreset: AVCaptureSession.Preset
+        if #available(iOS 9.0, *) {
+            sessionPreset = AVCaptureSession.Preset.hd4K3840x2160
+        } else {
+            sessionPreset = AVCaptureSession.Preset.high
+        }
         var frameDuration = kCMTimeInvalid
         // For single core systems like iPhone 4 and iPod Touch 4th Generation we use a lower resolution and framerate to maintain real-time performance.
         if ProcessInfo.processInfo.processorCount == 1 {
@@ -496,7 +501,10 @@ class RosyWriterCapturePipeline: NSObject, AVCaptureVideoDataOutputSampleBufferD
                     self._renderer.accumulatePixelBuffer(sourcePixelBuffer)
                 }
 
-                renderedPixelBuffer = self._renderer.copyRenderedPixelBuffer()
+                if appendFrameToVideo
+                {
+                    renderedPixelBuffer = self._renderer.copyRenderedPixelBuffer()
+                }
                 return false
             } else {
                 return true //indicates return from func
@@ -541,6 +549,29 @@ class RosyWriterCapturePipeline: NSObject, AVCaptureVideoDataOutputSampleBufferD
         }
     }
     
+    //MARK: Focus
+    
+    func setFocusPoint(focusPoint: CGPoint) {
+        if _recordingStatus != .idle {
+            return
+        }
+        
+        if let device = _videoDevice {
+            do {
+                try device.lockForConfiguration()
+                
+                device.focusPointOfInterest = focusPoint
+                device.focusMode = .autoFocus // focus once
+                device.exposurePointOfInterest = focusPoint
+                device.exposureMode = AVCaptureDevice.ExposureMode.continuousAutoExposure
+                device.unlockForConfiguration()
+            }
+            catch {
+                NSLog("videoDevice lockForConfiguration returned error \(error)")
+            }
+        }
+    }
+    
     //MARK: Recording
     // Must be running before starting recording
     // These methods are asynchronous, see the recording delegate callbacks
@@ -554,6 +585,14 @@ class RosyWriterCapturePipeline: NSObject, AVCaptureVideoDataOutputSampleBufferD
             self.transitionToRecordingStatus(.startingRecording, error: nil)
         }
         
+        do {
+            try self._videoDevice?.lockForConfiguration()
+            self._videoDevice?.focusMode = .locked
+            self._videoDevice?.unlockForConfiguration()
+        } catch {
+            NSLog("videoDevice lockForConfiguration returned error \(error)")
+        }
+
         let callbackQueue = DispatchQueue(label: "com.apple.sample.capturepipeline.recordercallback", attributes: []); // guarantee ordering of callbacks with a serial queue
         let recorder = MovieRecorder(url: _recordingURL, delegate: self, callbackQueue: callbackQueue)
         
@@ -580,6 +619,14 @@ class RosyWriterCapturePipeline: NSObject, AVCaptureVideoDataOutputSampleBufferD
         if returnFlag {return}
         
         _recorder.finishRecording() // asynchronous, will call us back with recorderDidFinishRecording: or recorder:didFailWithError: when done
+
+        do {
+            try self._videoDevice?.lockForConfiguration()
+            self._videoDevice?.focusMode = .continuousAutoFocus
+            self._videoDevice?.unlockForConfiguration()
+        } catch {
+            NSLog("videoDevice lockForConfiguration returned error \(error)")
+        }
     }
     
     //MARK: MovieRecorder Delegate
