@@ -31,10 +31,10 @@ class RosyWriterViewController: UIViewController, RosyWriterCapturePipelineDeleg
     private var _capturePipeline: RosyWriterCapturePipeline!
     
     @IBOutlet private var cameraView: UIView!
-    @IBOutlet private var recordButton: UIBarButtonItem!
     @IBOutlet private var framerateLabel: UILabel!
     @IBOutlet private var dimensionsLabel: UILabel!
-    
+    @IBOutlet private var recordButton: UIButton!
+
     deinit {
         if _addedObservers {
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIApplicationDidEnterBackground, object: UIApplication.shared)
@@ -88,6 +88,8 @@ class RosyWriterViewController: UIViewController, RosyWriterCapturePipelineDeleg
         _allowedToUseGPU = (UIApplication.shared.applicationState != .background)
         _capturePipeline.renderingEnabled = _allowedToUseGPU
         
+        updateRecordButton()
+        
         super.viewDidLoad()
     }
     
@@ -140,20 +142,25 @@ class RosyWriterViewController: UIViewController, RosyWriterCapturePipelineDeleg
                 _backgroundRecordingID = UIApplication.shared.beginBackgroundTask(expirationHandler: {})
             }
             
-            self.recordButton.isEnabled = false; // re-enabled once recording has finished starting
-            self.recordButton.title = "Stop"
+            self.recordButton.isEnabled = false // re-enabled once recording has finished starting
             
             _capturePipeline.startRecording()
             
             _recording = true
+            updateRecordButton()
         }
+    }
+    
+    private func updateRecordButton() {
+        recordButton.layer.backgroundColor = _recording ? UIColor.red.cgColor : UIColor.white.cgColor
+        recordButton.layer.borderColor = UIColor.white.cgColor
     }
     
     private func recordingStopped() {
         _recording = false
         self.recordButton.isEnabled = true
-        self.recordButton.title = "Record"
-        
+        updateRecordButton()
+
         UIApplication.shared.isIdleTimerDisabled = false
         
         UIApplication.shared.endBackgroundTask(_backgroundRecordingID)
@@ -241,7 +248,6 @@ class RosyWriterViewController: UIViewController, RosyWriterCapturePipelineDeleg
     func capturePipelineRecordingWillStop(_ capturePipeline: RosyWriterCapturePipeline) {
         // Disable record button until we are ready to start another recording
         self.recordButton.isEnabled = false
-        self.recordButton.title = "Record"
     }
     
     func capturePipelineRecordingDidStop(_ capturePipeline: RosyWriterCapturePipeline) {
