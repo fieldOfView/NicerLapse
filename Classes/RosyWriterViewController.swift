@@ -56,11 +56,15 @@ class RosyWriterViewController: UIViewController, RosyWriterCapturePipelineDeleg
         
         // We reset the OpenGLPixelBufferView to ensure all resources have been cleared when going to the background.
         _previewView?.reset()
+        
+        _capturePipeline.stopRunning()
     }
     
     @objc func applicationWillEnterForeground() {
         _allowedToUseGPU = true
         _capturePipeline?.renderingEnabled = true
+
+        _capturePipeline.startRunning()
     }
     
     override func viewDidLoad() {
