@@ -142,7 +142,8 @@ class RosyWriterViewController: UIViewController, RosyWriterCapturePipelineDeleg
                 _backgroundRecordingID = UIApplication.shared.beginBackgroundTask(expirationHandler: {})
             }
             
-            self.recordButton.isEnabled = false // re-enabled once recording has finished starting
+            recordButton.isEnabled = false // re-enabled once recording has finished starting
+            recordButton.layer.opacity = 0.5
             
             _capturePipeline.startRecording()
             
@@ -158,7 +159,8 @@ class RosyWriterViewController: UIViewController, RosyWriterCapturePipelineDeleg
     
     private func recordingStopped() {
         _recording = false
-        self.recordButton.isEnabled = true
+        recordButton.isEnabled = true
+        recordButton.layer.opacity = 1.0
         updateRecordButton()
 
         UIApplication.shared.isIdleTimerDisabled = false
@@ -219,7 +221,8 @@ class RosyWriterViewController: UIViewController, RosyWriterCapturePipelineDeleg
     func capturePipeline(_ capturePipeline: RosyWriterCapturePipeline, didStopRunningWithError error: Error) {
         self.showError(error)
         
-        self.recordButton.isEnabled = false
+        recordButton.isEnabled = false
+        recordButton.layer.opacity = 0.5
     }
     
     // Preview
@@ -242,12 +245,14 @@ class RosyWriterViewController: UIViewController, RosyWriterCapturePipelineDeleg
     
     // Recording
     func capturePipelineRecordingDidStart(_ capturePipeline: RosyWriterCapturePipeline) {
-        self.recordButton.isEnabled = true
+        recordButton.isEnabled = true
+        recordButton.layer.opacity = 1.0
     }
     
     func capturePipelineRecordingWillStop(_ capturePipeline: RosyWriterCapturePipeline) {
         // Disable record button until we are ready to start another recording
-        self.recordButton.isEnabled = false
+        recordButton.isEnabled = false
+        recordButton.layer.opacity = 0.5
     }
     
     func capturePipelineRecordingDidStop(_ capturePipeline: RosyWriterCapturePipeline) {
