@@ -138,16 +138,14 @@ class RosyWriterCapturePipeline: NSObject, AVCaptureVideoDataOutputSampleBufferD
         
         _recordingURL = URL(fileURLWithPath: NSString.path(withComponents: [NSTemporaryDirectory(), "Movie.mp4"]) as String)
         
-        _sessionQueue = DispatchQueue(label: "com.apple.sample.capturepipeline.session", attributes: [])
+        _sessionQueue = DispatchQueue(label: "com.fieldofview.nicerlapse.capturepipeline.session", attributes: [])
         
         // In a multi-threaded producer consumer system it's generally a good idea to make sure that producers do not get starved of CPU time by their consumers.
         // In this app we start with VideoDataOutput frames on a high priority queue, and downstream consumers use default priority queues.
         let highQueue = DispatchQueue.global(qos: .userInteractive)
         //### representing "serial" with empty option makes code less readable, Apple should reconsider...
         //### and another issue here: https://bugs.swift.org/browse/SR-1859, Apple, please update the documentation of Dispatch soon.
-        _videoDataOutputQueue = DispatchQueue(label: "com.apple.sample.capturepipeline.video", attributes: [], target: highQueue)
-//        _videoDataOutputQueue = DispatchQueue(label: "com.apple.sample.capturepipeline.video", attributes: [])
-//        _videoDataOutputQueue.setTarget(queue: DispatchQueue.global(qos: .userInteractive))
+        _videoDataOutputQueue = DispatchQueue(label: "com.fieldofview.nicerlapse.capturepipeline.video", attributes: [], target: highQueue)
         
         _renderer = RosyWriterOpenGLRenderer()
         
@@ -593,7 +591,7 @@ class RosyWriterCapturePipeline: NSObject, AVCaptureVideoDataOutputSampleBufferD
             NSLog("videoDevice lockForConfiguration returned error \(error)")
         }
 
-        let callbackQueue = DispatchQueue(label: "com.apple.sample.capturepipeline.recordercallback", attributes: []); // guarantee ordering of callbacks with a serial queue
+        let callbackQueue = DispatchQueue(label: "com.fieldofview.nicerlapse.capturepipeline.recordercallback", attributes: []); // guarantee ordering of callbacks with a serial queue
         let recorder = MovieRecorder(url: _recordingURL, delegate: self, callbackQueue: callbackQueue)
         
         // Front camera recording shouldn't be mirrored

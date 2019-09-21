@@ -99,7 +99,7 @@ class MovieRecorder: NSObject {
     // delegate is weak referenced
     init(url: URL, delegate: MovieRecorderDelegate, callbackQueue queue: DispatchQueue) {
         
-        _writingQueue = DispatchQueue(label: "com.apple.sample.movierecorder.writing", attributes: [])
+        _writingQueue = DispatchQueue(label: "com.fieldofview.nicerlapse.movierecorder.writing", attributes: [])
         _videoTrackTransform = CGAffineTransform.identity
         _URL = url
         _delegate = delegate

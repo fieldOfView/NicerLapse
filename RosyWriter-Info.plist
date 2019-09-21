@@ -25,11 +25,11 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>This sample code uses camera</string>
+	<string>This app uses camera to see</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>This sample code adds video to photo library</string>
+	<string>This app adds video to photo library</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This sample code uses photo library</string>
+	<string>This app uses the photo library</string>
 	<key>UILaunchStoryboardName</key>
 	<string>Launch</string>
 	<key>UIMainStoryboardFile</key>
@@ -37,7 +37,7 @@
 	<key>UIRequiresFullScreen</key>
 	<true/>
 	<key>UIStatusBarHidden</key>
-	<true/>
+	<false/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

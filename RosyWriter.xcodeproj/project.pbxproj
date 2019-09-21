@@ -43,7 +43,7 @@
 		269351C0156CB42100512474 /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		28365598139FE71B00D09100 /* ReadMe.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ReadMe.txt; sourceTree = "<group>"; };
 		6F096BF9157ED5110075E328 /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
-		6F90DDD51395CAAA00125BDA /* RosyWriterOpenGL.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RosyWriterOpenGL.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6F90DDD51395CAAA00125BDA /* NicerLapse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NicerLapse.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6F90DDD91395CAAA00125BDA /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		6F90DDDB1395CAAA00125BDA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		6F90DDDD1395CAAA00125BDA /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -120,7 +120,7 @@
 		6F90DDD61395CAAA00125BDA /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				6F90DDD51395CAAA00125BDA /* RosyWriterOpenGL.app */,
+				6F90DDD51395CAAA00125BDA /* NicerLapse.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -202,9 +202,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		6F90DDD41395CAAA00125BDA /* RosyWriterOpenGL */ = {
+		6F90DDD41395CAAA00125BDA /* NicerLapse */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 6F90DDF71395CAAA00125BDA /* Build configuration list for PBXNativeTarget "RosyWriterOpenGL" */;
+			buildConfigurationList = 6F90DDF71395CAAA00125BDA /* Build configuration list for PBXNativeTarget "NicerLapse" */;
 			buildPhases = (
 				6F90DDD11395CAAA00125BDA /* Sources */,
 				6F90DDD21395CAAA00125BDA /* Frameworks */,
@@ -214,9 +214,9 @@
 			);
 			dependencies = (
 			);
-			name = RosyWriterOpenGL;
+			name = NicerLapse;
 			productName = RosyWriter;
-			productReference = 6F90DDD51395CAAA00125BDA /* RosyWriterOpenGL.app */;
+			productReference = 6F90DDD51395CAAA00125BDA /* NicerLapse.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -247,7 +247,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				6F90DDD41395CAAA00125BDA /* RosyWriterOpenGL */,
+				6F90DDD41395CAAA00125BDA /* NicerLapse */,
 			);
 		};
 /* End PBXProject section */
@@ -443,10 +443,10 @@
 				INFOPLIST_FILE = "RosyWriter-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				OTHER_CFLAGS = "-DUSE_OPENGL_RENDERER=1";
+				OTHER_CFLAGS = "";
 				OTHER_SWIFT_FLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.example.apple-samplecode.RosyWriterOpenGL";
-				PRODUCT_NAME = RosyWriterOpenGL;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fieldOfView.NicerLapse;
+				PRODUCT_NAME = NicerLapse;
 				PROVISIONING_PROFILE = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
@@ -470,10 +470,10 @@
 				INFOPLIST_FILE = "RosyWriter-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				OTHER_CFLAGS = "-DUSE_OPENGL_RENDERER=1";
+				OTHER_CFLAGS = "";
 				OTHER_SWIFT_FLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.example.apple-samplecode.RosyWriterOpenGL";
-				PRODUCT_NAME = RosyWriterOpenGL;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fieldOfView.NicerLapse;
+				PRODUCT_NAME = NicerLapse;
 				PROVISIONING_PROFILE = "";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
 				SWIFT_VERSION = 4.0;
@@ -494,7 +494,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		6F90DDF71395CAAA00125BDA /* Build configuration list for PBXNativeTarget "RosyWriterOpenGL" */ = {
+		6F90DDF71395CAAA00125BDA /* Build configuration list for PBXNativeTarget "NicerLapse" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				6F90DDF81395CAAA00125BDA /* Debug */,
